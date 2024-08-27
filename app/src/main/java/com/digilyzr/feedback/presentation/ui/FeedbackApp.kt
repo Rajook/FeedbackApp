@@ -22,12 +22,15 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import coil.compose.AsyncImage
 import com.digilyzr.feedback.domain.OptionType
 import com.digilyzr.feedback.domain.Question
 import com.digilyzr.feedback.presentation.FeedbackViewModel
@@ -45,7 +48,7 @@ fun FeedbackNavHost(navController: NavHostController, viewModel: FeedbackViewMod
             FeedbackPager(viewModel, navController)
         }
         composable("submission") {
-            SubmissionScreen(viewModel)
+            SubmissionScreen(viewModel,navController)
         }
     }
 }
@@ -90,69 +93,85 @@ fun QuestionPage(
     var selectedOption by remember { mutableStateOf<String?>(null) }
     val coroutineScope = rememberCoroutineScope()
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+    // Define the URL of the background image
+    val imageUrl = "https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0"
+
+    Box(
+        modifier = Modifier.fillMaxSize()
     ) {
-        Text(text = question.text, style = MaterialTheme.typography.bodyLarge)
-        Spacer(modifier = Modifier.height(16.dp))
+        // Background image
+        AsyncImage(
+            model = imageUrl,
+            contentDescription = null,
+            contentScale = ContentScale.FillBounds,
+            modifier = Modifier.fillMaxSize()
+        )
 
-        when (question.type) {
-            OptionType.BUTTON -> OptionButtons(question.options) { selected ->
-                selectedOption = selected
-            }
-            OptionType.CHECKBOX -> OptionCheckboxes(question.options) { selected ->
-                selectedOption = selected
-            }
-            OptionType.RADIO -> OptionRadioButtons(question.options) { selected ->
-                selectedOption = selected
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
+        // Content over the background
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Button(
-                onClick = {
-                    if (currentPage > 0) {
-                        coroutineScope.launch {
-                            pagerState.scrollToPage(currentPage - 1)
-                        }
-                    }
-                },
-                enabled = currentPage > 0
-            ) {
-                Text(text = "Previous")
+            Text(text = question.text, style = MaterialTheme.typography.bodyLarge, color = Color.White)
+            Spacer(modifier = Modifier.height(16.dp))
+
+            when (question.type) {
+                OptionType.BUTTON -> OptionButtons(question.options) { selected ->
+                    selectedOption = selected
+                }
+                OptionType.CHECKBOX -> OptionCheckboxes(question.options) { selected ->
+                    selectedOption = selected
+                }
+                OptionType.RADIO -> OptionRadioButtons(question.options) { selected ->
+                    selectedOption = selected
+                }
             }
-            Button(
-                onClick = {
-                    if (selectedOption != null) {
-                        viewModel.selectAnswer(selectedOption!!)
-                        if (currentPage < lastPage) {
-                            coroutineScope.launch {
-                                pagerState.scrollToPage(currentPage + 1)
-                            }
-                        } else {
-                            navController.navigate("submission")
-                        }
-                    }
-                },
-                enabled = selectedOption != null
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(text = "Next")
+                Button(
+                    onClick = {
+                        if (currentPage > 0) {
+                            coroutineScope.launch {
+                                pagerState.scrollToPage(currentPage - 1)
+                            }
+                        }
+                    },
+                    enabled = currentPage > 0
+                ) {
+                    Text(text = "Previous")
+                }
+                Button(
+                    onClick = {
+                        if (selectedOption != null) {
+                            viewModel.selectAnswer(selectedOption!!)
+                            if (currentPage < lastPage) {
+                                coroutineScope.launch {
+                                    pagerState.scrollToPage(currentPage + 1)
+                                }
+                            } else {
+                                navController.navigate("submission")
+                            }
+                        }
+                    },
+                    enabled = selectedOption != null
+                ) {
+                    Text(text = "Next")
+                }
             }
         }
     }
 }
 
 @Composable
-fun SubmissionScreen(viewModel: FeedbackViewModel) {
+fun SubmissionScreen(viewModel: FeedbackViewModel, navController: NavHostController) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -161,7 +180,15 @@ fun SubmissionScreen(viewModel: FeedbackViewModel) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(text = "Thank you for your feedback!")
-        Button(onClick = { viewModel.clear() }, modifier = Modifier.fillMaxWidth()) {
+        Button(onClick = {
+            viewModel.clear()
+            navController.navigate("questions") {
+                popUpTo(navController.graph.startDestinationId) {
+                    inclusive = true
+                }
+                launchSingleTop = true
+            }
+                         }, modifier = Modifier.fillMaxWidth()) {
             Text(text = "Close")
         }
         // Optionally show a summary of responses
