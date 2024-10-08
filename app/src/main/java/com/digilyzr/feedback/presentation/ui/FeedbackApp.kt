@@ -40,7 +40,6 @@ import com.google.accompanist.pager.PagerState
 import com.google.accompanist.pager.rememberPagerState
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalPagerApi::class)
 @Composable
 fun FeedbackNavHost(navController: NavHostController, viewModel: FeedbackViewModel = hiltViewModel()) {
     NavHost(navController = navController, startDestination = "questions") {
@@ -217,7 +216,7 @@ fun OptionCheckboxes(options: List<String>, onOptionSelected: (String) -> Unit) 
                     if (checkedState) onOptionSelected(option)
                 }
             )
-            Text(text = option, modifier = Modifier.padding(start = 8.dp))
+            Text(text = option, modifier = Modifier.padding(start = 8.dp), color = Color.White)
         }
         Spacer(modifier = Modifier.height(8.dp))
     }
@@ -235,7 +234,7 @@ fun OptionRadioButtons(options: List<String>, onOptionSelected: (String) -> Unit
                     onOptionSelected(option)
                 }
             )
-            Text(text = option, modifier = Modifier.padding(start = 8.dp))
+            Text(text = option, modifier = Modifier.padding(start = 8.dp), color = Color.White)
         }
         Spacer(modifier = Modifier.height(8.dp))
     }

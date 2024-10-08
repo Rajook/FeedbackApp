@@ -48,7 +48,7 @@ class FeedbackViewModel @Inject constructor(
     }
 
     fun clear(){
-        currentQuestionIndex=0
+        currentQuestionIndex = 0
     }
 
     private fun submitAnswers() {
